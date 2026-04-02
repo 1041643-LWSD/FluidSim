@@ -7,6 +7,7 @@ public class Particle {
 	private final double REPULSIVE_RANGE = 2;
 	private final double FRICTION = 0.99;
 	private final double FORCE_CONSTANT = 1;
+	private final double SIZE = 1;
 
 	public Particle(double x, double y) {
 		this.x = x;
@@ -72,6 +73,6 @@ public class Particle {
 	}
 
 	public void draw() {
-		StdDraw.circle(this.x, this.y, 0.01);
+		StdDraw.filledCircle(this.x, this.y, this.SIZE);
 	}
 }
