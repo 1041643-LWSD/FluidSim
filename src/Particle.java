@@ -3,10 +3,10 @@ public class Particle {
 	private double y;
 	private double xVel;
 	private double yVel;
-	private final double INFLUENCE_RANGE = 10;
+	private final double INFLUENCE_RANGE = 20;
 	private final double REPULSIVE_RANGE = 2;
 	private final double FRICTION = 0.99;
-	private final double FORCE_CONSTANT = 1;
+	private final double FORCE_CONSTANT = .1;
 	private final double SIZE = 1;
 
 	public Particle(double x, double y) {
@@ -38,9 +38,18 @@ public class Particle {
 		double xForce = 0;
 		double yForce = 0;
             for (Particle particle : particles) {
+				if(particle == this) {
+					continue;
+				}
                 if (this.withinInfluence(particle)) {
                     if (this.tooClose(particle)) {
-						xForce -= this.FORCE_CONSTANT/this.getXDistance(particle);
+						if (this.getXDistance(particle) == 0) {
+							this.x += 1/50 - Math.random()/100;
+						}
+						xForce -= 1/this.getXDistance(particle);
+						if (this.getYDistance(particle) != 0) {
+							this.y += 1/50 - Math.random()/100;
+						}
 						yForce -= this.FORCE_CONSTANT/this.getYDistance(particle);
                     } else {
 						xForce += this.FORCE_CONSTANT/this.getXDistance(particle);
@@ -57,18 +66,19 @@ public class Particle {
 		this.yVel += forces[1];
 	}
 
-	public void updatePosition() {
+	public void updatePosition(Particle[] particles) {
+		calculateNewVelocity(particles);
 		this.x += this.xVel;
 		this.y += this.yVel;
 		this.xVel *= this.FRICTION;
 		this.yVel *= this.FRICTION;
 	}
 
-	private double getX() {
+	public double getX() {
 		return this.x;
 	}
 	
-	private double getY() {
+	public double getY() {
 		return this.y;
 	}
 
