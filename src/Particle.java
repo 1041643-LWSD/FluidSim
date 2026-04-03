@@ -3,11 +3,12 @@ public class Particle {
 	private double y;
 	private double xVel;
 	private double yVel;
-	private final double INFLUENCE_RANGE = 20;
-	private final double REPULSIVE_RANGE = 2;
-	private final double FRICTION = 0.99;
-	private final double FORCE_CONSTANT = .1;
-	private final double SIZE = 1;
+	private final static double INFLUENCE_RANGE = 50;
+	private final static double REPULSIVE_RANGE = 15;
+	private final static double FRICTION = 0.9;
+	private final static double ATTRACTIVE_FORCE_CONSTANT = .1;
+	private final static double REPULSIVE_FORCE_CONSTANT = 1;
+	private final static double SIZE = 1;
 
 	public Particle(double x, double y) {
 		this.x = x;
@@ -42,18 +43,17 @@ public class Particle {
 					continue;
 				}
                 if (this.withinInfluence(particle)) {
+                	double distance = this.getDistance(particle);
+                	double yDistance = this.getYDistance(particle);
+                	double xDistance = this.getXDistance(particle);
                     if (this.tooClose(particle)) {
-						if (this.getXDistance(particle) == 0) {
-							this.x += 1/50 - Math.random()/100;
-						}
-						xForce -= 1/this.getXDistance(particle);
-						if (this.getYDistance(particle) != 0) {
-							this.y += 1/50 - Math.random()/100;
-						}
-						yForce -= this.FORCE_CONSTANT/this.getYDistance(particle);
+	                	double force = this.REPULSIVE_FORCE_CONSTANT/distance;
+	                	xForce += force * xDistance/distance;
+						yForce += force * yDistance/distance;
                     } else {
-						xForce += this.FORCE_CONSTANT/this.getXDistance(particle);
-						yForce += this.FORCE_CONSTANT/this.getYDistance(particle);
+                    	double force = this.ATTRACTIVE_FORCE_CONSTANT/distance;
+						xForce -= force * xDistance/distance;
+						yForce -= force * yDistance/distance;
 					}
                 }
             }
@@ -62,8 +62,8 @@ public class Particle {
 
 	public void calculateNewVelocity(Particle[] particles) {
 		double[] forces = calculateForce(particles);
-		this.xVel += forces[0];
-		this.yVel += forces[1];
+		this.xVel = forces[0];
+		this.yVel = forces[1];
 	}
 
 	public void updatePosition(Particle[] particles) {
@@ -84,5 +84,7 @@ public class Particle {
 
 	public void draw() {
 		StdDraw.filledCircle(this.x, this.y, this.SIZE);
+		//StdDraw.circle(x, y, this.INFLUENCE_RANGE);
+		//StdDraw.circle(x, y, this.REPULSIVE_RANGE);
 	}
 }

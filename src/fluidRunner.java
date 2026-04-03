@@ -1,18 +1,22 @@
 public class fluidRunner {
+	
+	private final static int SIZE = 100;
+	private final static int NUM_PARTICLES = 100;
+	
     public static void main(String[] args) {
-        StdDraw.setScale(0, 100);
-        int numParticles = 2;
-        Particle[] particles = new Particle[numParticles];
-        particles[0] = new Particle(50, 50);
-        particles[1] = new Particle(60, 60);
+    	StdDraw.enableDoubleBuffering();
+        StdDraw.setScale(0, SIZE);
+        Particle[] particles = new Particle[NUM_PARTICLES];
+        for(int i = 0; i < NUM_PARTICLES; i++) {
+        	particles[i] = new Particle(Math.random() * SIZE, Math.random() * SIZE);
+        }
 
         while (true) {
-            StdDraw.clear();
+        	StdDraw.clear();
             for (Particle particle : particles) {
                 particle.updatePosition(particles);
                 particle.draw();
             }
-            //System.out.println(particles[0].getX() + ", " + particles[0].getY());
             StdDraw.show();
         }
     }
