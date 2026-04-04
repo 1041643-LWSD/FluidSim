@@ -1,18 +1,23 @@
 public class Particle {
 	private double x;
 	private double y;
+	private double nextX;
+	private double nextY;
 	private double xVel;
 	private double yVel;
 	private final static double INFLUENCE_RANGE = 50;
 	private final static double REPULSIVE_RANGE = 15;
 	private final static double FRICTION = 0.9;
-	private final static double ATTRACTIVE_FORCE_CONSTANT = .1;
-	private final static double REPULSIVE_FORCE_CONSTANT = 1;
+	private final static double ATTRACTIVE_FORCE_CONSTANT = .01;
+	private final static double REPULSIVE_FORCE_CONSTANT = .1;
 	private final static double SIZE = 1;
+	private final static double MAX_VELOCITY = 5;
 
 	public Particle(double x, double y) {
 		this.x = x;
 		this.y = y;
+		this.nextX = x;
+		this.nextY = y;
 	}
 	
 	public double getDistance(Particle particle) {
@@ -28,11 +33,11 @@ public class Particle {
 	}
 	
 	public boolean withinInfluence(Particle particle) {
-		return getDistance(particle) < this.INFLUENCE_RANGE;
+		return getDistance(particle) < INFLUENCE_RANGE;
 	}
 	
 	public boolean tooClose(Particle particle) {
-		return getDistance(particle) < this.REPULSIVE_RANGE;
+		return getDistance(particle) < REPULSIVE_RANGE;
 	}
 	
 	public double[] calculateForce(Particle[] particles) {
@@ -43,15 +48,15 @@ public class Particle {
 					continue;
 				}
                 if (this.withinInfluence(particle)) {
-                	double distance = this.getDistance(particle);
+                	double distance = Math.max(1, this.getDistance(particle));
                 	double yDistance = this.getYDistance(particle);
                 	double xDistance = this.getXDistance(particle);
                     if (this.tooClose(particle)) {
-	                	double force = this.REPULSIVE_FORCE_CONSTANT/distance;
+	                	double force = REPULSIVE_FORCE_CONSTANT/distance;
 	                	xForce += force * xDistance/distance;
 						yForce += force * yDistance/distance;
                     } else {
-                    	double force = this.ATTRACTIVE_FORCE_CONSTANT/distance;
+                    	double force = ATTRACTIVE_FORCE_CONSTANT/distance;
 						xForce -= force * xDistance/distance;
 						yForce -= force * yDistance/distance;
 					}
@@ -60,18 +65,24 @@ public class Particle {
 		return new double[]{xForce, yForce};
 	}
 
-	public void calculateNewVelocity(Particle[] particles) {
+	public void calculateNextPosition(Particle[] particles) {
 		double[] forces = calculateForce(particles);
-		this.xVel = forces[0];
-		this.yVel = forces[1];
+		this.xVel += forces[0];
+		this.yVel += forces[1];
+		this.xVel = Math.max(-MAX_VELOCITY, Math.min(MAX_VELOCITY, this.xVel));
+		this.yVel = Math.max(-MAX_VELOCITY, Math.min(MAX_VELOCITY, this.yVel));
+
+		this.nextX = this.x + this.xVel;
+		this.nextY = this.y + this.yVel;
+		this.xVel *= FRICTION;
+		this.yVel *= FRICTION;
+		this.nextX = Math.max(0, Math.min(fluidRunner.SIZE, this.nextX));
+		this.nextY = Math.max(0, Math.min(fluidRunner.SIZE, this.nextY));
 	}
 
-	public void updatePosition(Particle[] particles) {
-		calculateNewVelocity(particles);
-		this.x += this.xVel;
-		this.y += this.yVel;
-		this.xVel *= this.FRICTION;
-		this.yVel *= this.FRICTION;
+	public void updatePosition() {
+		this.x = this.nextX;
+		this.y = this.nextY;
 	}
 
 	public double getX() {
@@ -83,8 +94,6 @@ public class Particle {
 	}
 
 	public void draw() {
-		StdDraw.filledCircle(this.x, this.y, this.SIZE);
-		//StdDraw.circle(x, y, this.INFLUENCE_RANGE);
-		//StdDraw.circle(x, y, this.REPULSIVE_RANGE);
+		StdDraw.filledCircle(this.x, this.y, SIZE);
 	}
 }
