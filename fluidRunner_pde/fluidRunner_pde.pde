@@ -15,6 +15,9 @@ void draw() {
   // Map 0-100 coordinate system to 0-600 pixels
   background(255);  // White background
   
+  //fill(255, 50);   // instead of background()
+  //rect(0, 0, width, height);
+  
   // Update physics
   for (Particle particle : particles) {
     particle.calculateNextPosition(particles);
@@ -24,11 +27,12 @@ void draw() {
   }
   
   // Draw
-  fill(0);  // Black fill
+  fill(0, 50);  // Black fill
   noStroke();
   for (Particle particle : particles) {
     particle.display();
-  }
+  }  
+  //filter(BLUR, 3);
 }
 
 class Particle {
@@ -37,11 +41,11 @@ class Particle {
   float xVel, yVel;
   
   final float INFLUENCE_RANGE = 20;
-  final float REPULSIVE_RANGE = 15;
-  final float FRICTION = 0.9;
+  final float REPULSIVE_RANGE = 10;
+  final float FRICTION = 0.95;
   final float ATTRACTIVE_FORCE_CONSTANT = 0.01;
   final float REPULSIVE_FORCE_CONSTANT = 0.5;
-  final float PARTICLE_SIZE = 1;
+  final float PARTICLE_SIZE = 3;
   final float MAX_VELOCITY = 5;
   boolean gravity = true;
   final float GRAVITY_STRENGTH = .3;
@@ -131,20 +135,25 @@ class Particle {
     float[] forces = calculateForce(particles);
     this.xVel += forces[0];
     this.yVel += forces[1];
+    
+    this.xVel = constrain(this.xVel, -MAX_VELOCITY, MAX_VELOCITY);
+    this.yVel = constrain(this.yVel, -MAX_VELOCITY, MAX_VELOCITY);
+    
+    this.xVel *= FRICTION;
+    this.yVel *= FRICTION;
+    
+    this.nextX = this.x + this.xVel;
+    this.nextY = this.y + this.yVel;
+    
     this.nextX = constrain(this.nextX, 0, SIZE);
     this.nextY = constrain(this.nextY, 0, SIZE);
     
     if (this.nextX == 0 || this.nextX == SIZE) {
       this.xVel *= -.5;
     }
-    if (this.nextY == 0 || this.nextY == SIZE) {
+    if (this.nextY == 0) {
       this.yVel *= -.5;
     }
-
-    this.nextX = this.x + this.xVel;
-    this.nextY = this.y + this.yVel;
-    this.xVel *= FRICTION;
-    this.yVel *= FRICTION;
   }
 
   void updatePosition() {
