@@ -1,22 +1,22 @@
-final int SIZE = 100;
+final int SIZE_X = 200;
+final int SIZE_Y = 100;
 final int NUM_PARTICLES = 1000;
 Particle[] particles;
 
 void setup() {
-  size(600, 600);  // Window size in pixels
+  size(1200, 600);  // Window size in pixels
   pixelDensity(2);
   particles = new Particle[NUM_PARTICLES];
   for (int i = 0; i < NUM_PARTICLES; i++) {
-    particles[i] = new Particle(random(SIZE), random(SIZE));
+    particles[i] = new Particle(random(SIZE_X), random(SIZE_Y));
   }
 }
 
 void draw() {
-  // Map 0-100 coordinate system to 0-600 pixels
-  background(255);  // White background
+  //background(255);  // White background
   
-  //fill(255, 50);   // instead of background()
-  //rect(0, 0, width, height);
+  fill(255, 50);   // instead of background()
+  rect(0, 0, width, height);
   
   // Update physics
   for (Particle particle : particles) {
@@ -25,14 +25,49 @@ void draw() {
   for (Particle particle : particles) {
     particle.updatePosition();
   }
+  int cols = width / 10;
+  int rows = height / 10;
+  int[][] density = new int[cols][rows];
   
-  // Draw
-  fill(0, 50);  // Black fill
+  // count hits
+  for (Particle p : particles) {
+    float px = map(p.x, 0, SIZE_X, 0, width);
+    float py = map(p.y, 0, SIZE_Y, 0, height);
+    
+    int cx = int(px / 10);
+    int cy = int(py / 10);
+    cx = constrain(cx, 0, cols - 1);
+    cy = constrain(cy, 0, rows - 1);
+    density[cx][cy]++;
+  }
+
+  int[][] smoothDensity = new int[cols][rows];
+  for (int x = 0; x < cols; x++) {
+    for (int y = 0; y < rows; y++) {
+      int sum = 0;
+      // Sum the 3x3 grid centered at (x, y)
+      for (int dx = -1; dx <= 1; dx++) {
+        for (int dy = -1; dy <= 1; dy++) {
+          int nx = x + dx;
+          int ny = y + dy;
+          // Check bounds
+          if (nx >= 0 && nx < cols && ny >= 0 && ny < rows) {
+            sum += density[nx][ny];
+          }
+        }
+      }
+      smoothDensity[x][y] = sum;
+    }
+  }
+  
   noStroke();
-  for (Particle particle : particles) {
-    particle.display();
-  }  
-  //filter(BLUR, 3);
+  // draw using smoothed density
+  for (int x = 0; x < cols; x++) {
+    for (int y = 0; y < rows; y++) {
+      fill(0, smoothDensity[x][y] * 255/20);  // Adjusted divisor since we're summing 9 cells
+      rect(x*10, y*10, 10, 10);
+    }
+  }
 }
 
 class Particle {
@@ -43,13 +78,13 @@ class Particle {
   final float INFLUENCE_RANGE = 20;
   final float REPULSIVE_RANGE = 10;
   final float FRICTION = 0.95;
-  final float ATTRACTIVE_FORCE_CONSTANT = 0.01;
-  final float REPULSIVE_FORCE_CONSTANT = 0.5;
-  final float PARTICLE_SIZE = 3;
+  final float ATTRACTIVE_FORCE_CONSTANT = 1;
+  final float REPULSIVE_FORCE_CONSTANT = 1;
+  final float PARTICLE_SIZE = 5;
   final float MAX_VELOCITY = 5;
   boolean gravity = true;
   final float GRAVITY_STRENGTH = .3;
-  final float MOUSE_STRENGTH = .1;
+  final float MOUSE_STRENGTH = 2;
   final float MOUSE_RANGE = 20;
 
   Particle(float x, float y) {
@@ -112,8 +147,8 @@ class Particle {
     }
     
     if(mousePressed) {
-      float simMouseX = map(mouseX, 0, width, 0, SIZE);
-      float simMouseY = map(mouseY, 0, height, 0, SIZE);
+      float simMouseX = map(mouseX, 0, width, 0, SIZE_X);
+      float simMouseY = map(mouseY, 0, height, 0, SIZE_Y);
       float distance = max(1, dist(simMouseX, simMouseY, this.x, this.y));
       if(distance < MOUSE_RANGE) {
         float xDistance = simMouseX - this.x;
@@ -145,14 +180,14 @@ class Particle {
     this.nextX = this.x + this.xVel;
     this.nextY = this.y + this.yVel;
     
-    this.nextX = constrain(this.nextX, 0, SIZE);
-    this.nextY = constrain(this.nextY, 0, SIZE);
+    this.nextX = constrain(this.nextX, 0, SIZE_X);
+    this.nextY = constrain(this.nextY, 0, SIZE_Y);
     
-    if (this.nextX == 0 || this.nextX == SIZE) {
-      this.xVel *= -.5;
+    if (this.nextX == 0 || this.nextX == SIZE_X) {
+      this.xVel *= -.99;
     }
     if (this.nextY == 0) {
-      this.yVel *= -.5;
+      this.yVel *= -.99;
     }
   }
 
@@ -163,9 +198,9 @@ class Particle {
 
   void display() {
     // Map from 0-100 to 0-600 pixel coordinates
-    float pixelX = map(x, 0, SIZE, 0, width);
-    float pixelY = map(y, 0, SIZE, 0, height);
-    float pixelSize = map(PARTICLE_SIZE, 0, SIZE, 0, width);
+    float pixelX = map(x, 0, SIZE_X, 0, width);
+    float pixelY = map(y, 0, SIZE_Y, 0, height);
+    float pixelSize = map(PARTICLE_SIZE, 0, SIZE_X, 0, width);
     ellipse(pixelX, pixelY, pixelSize * 2, pixelSize * 2);
   }
 }
